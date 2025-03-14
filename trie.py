@@ -4,10 +4,11 @@ from collections import deque
 class TrieNode:
     def __init__(self):
         self.children = [None] * 144
+        self.cocktailName = ''
         self.isCocktail = False
 
 
-def insert(root, ingrs):
+def insert(root, cock, ingrs):
     curr = root
     for c in ingrs:
         index = ingredientLookUp[c]
@@ -16,15 +17,22 @@ def insert(root, ingrs):
             curr.children[index] = new_node
         curr = curr.children[index]
     curr.isCocktail = True
+    curr.cocktailName = cock
 
 def search(root, ingrs):
     curr = root
     for c in ingrs:
         index = ingredientLookUp[c]
         if curr.children[index] is None:
-            return False
+            return {
+                "isCocktail": False, 
+                "cocktailName": ''
+            }
         curr = curr.children[index]
-    return curr.isCocktail
+    return {
+                "isCocktail": curr.isCocktail, 
+                "cocktailName": curr.cocktailName
+            }
 
 # -- END OF TRIE LOGIC --
 
@@ -50,14 +58,9 @@ for index, row in df.iterrows():
     ingrs.popleft()
     cocktails[row['Cocktail']] = list(ingrs)
 
-# for c in cocktails:
-#     print(str(c) + " " + str(cocktails[c]))
-
-# print(ingredientLookUp)
-
 root = TrieNode()
 for cock in cocktails:
-    insert(root, cocktails[cock])
+    insert(root, cock, cocktails[cock])
 test = {
  'Waterbury': ['Sugar / Simple Syrup', 'Lemon', 'Egg', 'Cognac', 'Grenadine'],
  'Tulip': ['Sweet (Italian) Vermouth', 'Lemon', 'Apricot Brandy / Abricotine / Pricota*', 'Calvados'],
@@ -69,4 +72,8 @@ test = {
 # True
 # False
 for cock in test:
-    print(search(root, test[cock]))
+    res = search(root, test[cock])
+    if res['isCocktail']:
+        print(str(res['isCocktail']) + " " + str(res['cocktailName']))
+    else:
+        print(str(res['isCocktail']) +  " not a cocktail")
